@@ -1,0 +1,1624 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Hajzjz/Ranjrax/refs/heads/main/99%20nights%20in%20the%20forest%20real))()
+-- End of XENO HUB FINAL UI
+-------------
+-- MAIN & INTRO API USAGE (example)
+-------------
+makeWindow("XG4 HUB 99 NIGHTS IN THE FOREST", "", "By : XG4 HUB 999")
+makeIntro("XG4 HUB | 2.0")
+
+local mainTab = createTab("Main")
+createSection(mainTab, "Dis & Youtube")
+createButton(mainTab, "Youtube", function() notify("ØªÙ… Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡!", Color3.fromRGB(0,255,0)) end)
+createButton(mainTab, "Discord", function() print("Hello!") end)
+
+local bringTab = createTab("Bring")
+createSection(bringTab, "Brings | 2.0")
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local character
+local humanoidRootPart
+local inventory = player:WaitForChild("Inventory")
+
+-- Detect character
+local function onCharacterAdded(char)
+    character = char
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end
+player.CharacterAdded:Connect(onCharacterAdded)
+if player.Character then
+    onCharacterAdded(player.Character)
+end
+
+-- Sack detection
+local sack = nil
+local function findSack()
+    for _, item in pairs(inventory:GetChildren()) do
+        if string.find(item.Name, "Sack") then
+            return item
+        end
+    end
+    return nil
+end
+sack = findSack()
+inventory.ChildAdded:Connect(function(child)
+    if string.find(child.Name, "Sack") then
+        sack = child
+    end
+end)
+inventory.ChildRemoved:Connect(function(child)
+    if sack and child == sack then
+        sack = findSack()
+    end
+end)
+
+-- Workspace folders
+local itemsFolder = workspace:FindFirstChild("Items")
+local characters = workspace:FindFirstChild("Characters")
+local lastPos = nil
+
+-- Sack check
+local function isSackFull()
+    if not sack then return true end
+    local current = sack:GetAttribute("NumberItems")
+    local capacity = sack:GetAttribute("Capacity")
+    return current ~= nil and capacity ~= nil and current >= capacity
+end
+
+-- Store item inside sack
+local function store(item)
+    if not sack then return end
+    local part = item:FindFirstChildWhichIsA("BasePart")
+    if part then
+        humanoidRootPart.CFrame = part.CFrame
+        task.wait(0.2)
+        ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("RequestBagStoreItem"):InvokeServer(sack, item)
+        task.wait(0.2)
+    end
+end
+
+-- ðŸŸ¢ Ù‚Ø§Ø¦Ù…Ø© Fuel Items
+local fuelItems = {
+    "Coal",
+    "Oil Barrel",
+    "Fuel Canister",
+    "Chair",
+    "All"
+}
+
+local selectedType = "All"
+createDropdown(bringTab, fuelItems, #fuelItems, function(selected)
+    selectedType = selected
+end)
+
+-- ðŸŸ¢ Toggles Ù„Ù„ØªØ­ÙƒÙ…
+local bringToggleActive = false
+local tpToggleActive = false
+
+-- Bring logic
+local function bringItems()
+    if not humanoidRootPart then return end
+    lastPos = humanoidRootPart.CFrame
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not bringToggleActive then break end
+        if isSackFull() then break end
+
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, fuel in pairs(fuelItems) do
+                if fuel ~= "All" and string.find(itemName, fuel) then
+                    store(item)
+                    break
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                store(item)
+            end
+        end
+    end
+    humanoidRootPart.CFrame = lastPos
+end
+
+-- Tp logic
+local function tpToItems()
+    if not humanoidRootPart then return end
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not tpToggleActive then break end
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, fuel in pairs(fuelItems) do
+                if fuel ~= "All" and string.find(itemName, fuel) then
+                    local part = item:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        humanoidRootPart.CFrame = part.CFrame
+                        task.wait(0.3)
+                    end
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                local part = item:FindFirstChildWhichIsA("BasePart")
+                if part then
+                    humanoidRootPart.CFrame = part.CFrame
+                    task.wait(0.3)
+                end
+            end
+        end
+    end
+end
+
+-- ðŸŸ¢ Toggles
+createToggle(bringTab, "Bring Fuel", false, function(state)
+    bringToggleActive = state
+    if state then
+        task.spawn(function()
+            while bringToggleActive do
+                bringItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+createToggle(bringTab, "Tp To Fuel", false, function(state)
+    tpToggleActive = state
+    if state then
+        task.spawn(function()
+            while tpToggleActive do
+                tpToItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+createSection(bringTab, "Bring Tree Items | 1.0")
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local character
+local humanoidRootPart
+local inventory = player:WaitForChild("Inventory")
+
+-- Detect character
+local function onCharacterAdded(char)
+    character = char
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end
+player.CharacterAdded:Connect(onCharacterAdded)
+if player.Character then
+    onCharacterAdded(player.Character)
+end
+
+-- Sack detection
+local sack = nil
+local function findSack()
+    for _, item in pairs(inventory:GetChildren()) do
+        if string.find(item.Name, "Sack") then
+            return item
+        end
+    end
+    return nil
+end
+sack = findSack()
+inventory.ChildAdded:Connect(function(child)
+    if string.find(child.Name, "Sack") then
+        sack = child
+    end
+end)
+inventory.ChildRemoved:Connect(function(child)
+    if sack and child == sack then
+        sack = findSack()
+    end
+end)
+
+-- Workspace folders
+local itemsFolder = workspace:FindFirstChild("Items")
+local characters = workspace:FindFirstChild("Characters")
+local lastPos = nil
+
+-- Sack check
+local function isSackFull()
+    if not sack then return true end
+    local current = sack:GetAttribute("NumberItems")
+    local capacity = sack:GetAttribute("Capacity")
+    return current ~= nil and capacity ~= nil and current >= capacity
+end
+
+-- Store item inside sack
+local function store(item)
+    if not sack then return end
+    local part = item:FindFirstChildWhichIsA("BasePart")
+    if part then
+        humanoidRootPart.CFrame = part.CFrame
+        task.wait(0.2)
+        ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("RequestBagStoreItem"):InvokeServer(sack, item)
+        task.wait(0.2)
+    end
+end
+
+-- ðŸŸ¢ Dropdown Ù„Ù„Ø§Ø®ØªÙŠØ§Ø± Ø¨ÙŠÙ† Log / Sapling / All
+local selectedType = "All"
+createDropdown(bringTab, {"Log", "Sapling", "All"}, 3, function(selected)
+    selectedType = selected
+end)
+
+-- ðŸŸ¢ Toggles Ù„Ù„ØªØ­ÙƒÙ…
+local bringToggleActive = false
+local tpToggleActive = false
+
+-- Bring logic
+local function bringItems()
+    if not humanoidRootPart then return end
+    lastPos = humanoidRootPart.CFrame
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not bringToggleActive then break end
+        if isSackFull() then break end
+
+        local itemName = item.Name:lower()
+        if selectedType == "Log" and itemName:find("log") then
+            store(item)
+        elseif selectedType == "Sapling" and itemName:find("sapling") then
+            store(item)
+        elseif selectedType == "All" and (itemName:find("log") or itemName:find("sapling")) then
+            store(item)
+        end
+    end
+    humanoidRootPart.CFrame = lastPos
+end
+
+-- Tp logic
+local function tpToItems()
+    if not humanoidRootPart then return end
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not tpToggleActive then break end
+        local itemName = item.Name:lower()
+        if (selectedType == "Log" and itemName:find("log"))
+        or (selectedType == "Sapling" and itemName:find("sapling"))
+        or (selectedType == "All" and (itemName:find("log") or itemName:find("sapling"))) then
+            local part = item:FindFirstChildWhichIsA("BasePart")
+            if part then
+                humanoidRootPart.CFrame = part.CFrame
+                task.wait(0.3)
+            end
+        end
+    end
+end
+
+-- ðŸŸ¢ Toggles
+createToggle(bringTab, "Bring Wood", false, function(state)
+    bringToggleActive = state
+    if state then
+        task.spawn(function()
+            while bringToggleActive do
+                bringItems()
+                task.wait(1) -- ÙƒÙ„ Ø«Ø§Ù†ÙŠØ© ÙŠØ¹ÙŠØ¯ Ø§Ù„Ø³Ø­Ø¨
+            end
+        end)
+    end
+end)
+
+createToggle(bringTab, "Tp To Wood", false, function(state)
+    tpToggleActive = state
+    if state then
+        task.spawn(function()
+            while tpToggleActive do
+                tpToItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+createSection(bringTab, "Farm Gears | 1.0")
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local character
+local humanoidRootPart
+local inventory = player:WaitForChild("Inventory")
+
+-- Detect character
+local function onCharacterAdded(char)
+    character = char
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end
+player.CharacterAdded:Connect(onCharacterAdded)
+if player.Character then
+    onCharacterAdded(player.Character)
+end
+
+-- Sack detection
+local sack = nil
+local function findSack()
+    for _, item in pairs(inventory:GetChildren()) do
+        if string.find(item.Name, "Sack") then
+            return item
+        end
+    end
+    return nil
+end
+sack = findSack()
+inventory.ChildAdded:Connect(function(child)
+    if string.find(child.Name, "Sack") then
+        sack = child
+    end
+end)
+inventory.ChildRemoved:Connect(function(child)
+    if sack and child == sack then
+        sack = findSack()
+    end
+end)
+
+-- Workspace folders
+local itemsFolder = workspace:FindFirstChild("Items")
+local characters = workspace:FindFirstChild("Characters")
+local lastPos = nil
+
+-- Sack check
+local function isSackFull()
+    if not sack then return true end
+    local current = sack:GetAttribute("NumberItems")
+    local capacity = sack:GetAttribute("Capacity")
+    return current ~= nil and capacity ~= nil and current >= capacity
+end
+
+-- Store item inside sack
+local function store(item)
+    if not sack then return end
+    local part = item:FindFirstChildWhichIsA("BasePart")
+    if part then
+        humanoidRootPart.CFrame = part.CFrame
+        task.wait(0.2)
+        ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("RequestBagStoreItem"):InvokeServer(sack, item)
+        task.wait(0.2)
+    end
+end
+
+-- ðŸŸ¢ Ù‚Ø§Ø¦Ù…Ø© Junk Items
+local junkItems = {
+    "Sheet Metal",
+    "Bolt",
+    "Broken Fan",
+    "Old Radio",
+    "Old Flashlight",
+    "Broken Microwave",
+    "UFO Junk",
+    "Tyre",
+    "All"
+}
+
+local selectedType = "All"
+createDropdown(bringTab, junkItems, #junkItems, function(selected)
+    selectedType = selected
+end)
+
+-- ðŸŸ¢ Toggles Ù„Ù„ØªØ­ÙƒÙ…
+local bringToggleActive = false
+local tpToggleActive = false
+
+-- Bring logic
+local function bringItems()
+    if not humanoidRootPart then return end
+    lastPos = humanoidRootPart.CFrame
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not bringToggleActive then break end
+        if isSackFull() then break end
+
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, junk in pairs(junkItems) do
+                if junk ~= "All" and string.find(itemName, junk) then
+                    store(item)
+                    break
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                store(item)
+            end
+        end
+    end
+    humanoidRootPart.CFrame = lastPos
+end
+
+-- Tp logic
+local function tpToItems()
+    if not humanoidRootPart then return end
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not tpToggleActive then break end
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, junk in pairs(junkItems) do
+                if junk ~= "All" and string.find(itemName, junk) then
+                    local part = item:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        humanoidRootPart.CFrame = part.CFrame
+                        task.wait(0.3)
+                    end
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                local part = item:FindFirstChildWhichIsA("BasePart")
+                if part then
+                    humanoidRootPart.CFrame = part.CFrame
+                    task.wait(0.3)
+                end
+            end
+        end
+    end
+end
+
+-- ðŸŸ¢ Toggles
+createToggle(bringTab, "Bring Gears", false, function(state)
+    bringToggleActive = state
+    if state then
+        task.spawn(function()
+            while bringToggleActive do
+                bringItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+createToggle(bringTab, "Tp To Gears", false, function(state)
+    tpToggleActive = state
+    if state then
+        task.spawn(function()
+            while tpToggleActive do
+                tpToItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+createSection(bringTab, "Farm Tools & Armors")
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local character
+local humanoidRootPart
+local inventory = player:WaitForChild("Inventory")
+
+-- Detect character
+local function onCharacterAdded(char)
+    character = char
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end
+player.CharacterAdded:Connect(onCharacterAdded)
+if player.Character then
+    onCharacterAdded(player.Character)
+end
+
+-- Sack detection
+local sack = nil
+local function findSack()
+    for _, item in pairs(inventory:GetChildren()) do
+        if string.find(item.Name, "Sack") then
+            return item
+        end
+    end
+    return nil
+end
+sack = findSack()
+inventory.ChildAdded:Connect(function(child)
+    if string.find(child.Name, "Sack") then
+        sack = child
+    end
+end)
+inventory.ChildRemoved:Connect(function(child)
+    if sack and child == sack then
+        sack = findSack()
+    end
+end)
+
+-- Workspace folders
+local itemsFolder = workspace:FindFirstChild("Items")
+local characters = workspace:FindFirstChild("Characters")
+local lastPos = nil
+
+-- Sack check
+local function isSackFull()
+    if not sack then return true end
+    local current = sack:GetAttribute("NumberItems")
+    local capacity = sack:GetAttribute("Capacity")
+    return current ~= nil and capacity ~= nil and current >= capacity
+end
+
+-- Store item inside sack
+local function store(item)
+    if not sack then return end
+    local part = item:FindFirstChildWhichIsA("BasePart")
+    if part then
+        humanoidRootPart.CFrame = part.CFrame
+        task.wait(0.2)
+        ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("RequestBagStoreItem"):InvokeServer(sack, item)
+        task.wait(0.2)
+    end
+end
+
+-- ðŸŸ¢ Ù‚Ø§Ø¦Ù…Ø© Tools & Armors
+local toolArmorItems = {
+    "Revolver Ammo",
+    "Rifle Ammo",
+    "Revolver",
+    "Rifle",
+    "Spear",
+    "RayGun",
+    "Leather Armor",
+    "Iron Armor",
+    "Thorn Body",
+    "All"
+}
+
+local selectedType = "All"
+createDropdown(bringTab, toolArmorItems, #toolArmorItems, function(selected)
+    selectedType = selected
+end)
+
+-- ðŸŸ¢ Toggles Ù„Ù„ØªØ­ÙƒÙ…
+local bringToggleActive = false
+local tpToggleActive = false
+
+-- Bring logic
+local function bringItems()
+    if not humanoidRootPart then return end
+    lastPos = humanoidRootPart.CFrame
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not bringToggleActive then break end
+        if isSackFull() then break end
+
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, tool in pairs(toolArmorItems) do
+                if tool ~= "All" and string.find(itemName, tool) then
+                    store(item)
+                    break
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                store(item)
+            end
+        end
+    end
+    humanoidRootPart.CFrame = lastPos
+end
+
+-- Tp logic
+local function tpToItems()
+    if not humanoidRootPart then return end
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not tpToggleActive then break end
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, tool in pairs(toolArmorItems) do
+                if tool ~= "All" and string.find(itemName, tool) then
+                    local part = item:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        humanoidRootPart.CFrame = part.CFrame
+                        task.wait(0.3)
+                    end
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                local part = item:FindFirstChildWhichIsA("BasePart")
+                if part then
+                    humanoidRootPart.CFrame = part.CFrame
+                    task.wait(0.3)
+                end
+            end
+        end
+    end
+end
+
+-- ðŸŸ¢ Toggles
+createToggle(bringTab, "Bring Tools/Armors", false, function(state)
+    bringToggleActive = state
+    if state then
+        task.spawn(function()
+            while bringToggleActive do
+                bringItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+createToggle(bringTab, "Tp To Tools/Armors", false, function(state)
+    tpToggleActive = state
+    if state then
+        task.spawn(function()
+            while tpToggleActive do
+                tpToItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+createSection(bringTab, "Farm Foods | 2.0")
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local character
+local humanoidRootPart
+local inventory = player:WaitForChild("Inventory")
+
+-- Detect character
+local function onCharacterAdded(char)
+    character = char
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end
+player.CharacterAdded:Connect(onCharacterAdded)
+if player.Character then
+    onCharacterAdded(player.Character)
+end
+
+-- Sack detection
+local sack = nil
+local function findSack()
+    for _, item in pairs(inventory:GetChildren()) do
+        if string.find(item.Name, "Sack") then
+            return item
+        end
+    end
+    return nil
+end
+sack = findSack()
+inventory.ChildAdded:Connect(function(child)
+    if string.find(child.Name, "Sack") then
+        sack = child
+    end
+end)
+inventory.ChildRemoved:Connect(function(child)
+    if sack and child == sack then
+        sack = findSack()
+    end
+end)
+
+-- Workspace folders
+local itemsFolder = workspace:FindFirstChild("Items")
+local characters = workspace:FindFirstChild("Characters")
+local lastPos = nil
+
+-- Sack check
+local function isSackFull()
+    if not sack then return true end
+    local current = sack:GetAttribute("NumberItems")
+    local capacity = sack:GetAttribute("Capacity")
+    return current ~= nil and capacity ~= nil and current >= capacity
+end
+
+-- Store item inside sack
+local function store(item)
+    if not sack then return end
+    local part = item:FindFirstChildWhichIsA("BasePart")
+    if part then
+        humanoidRootPart.CFrame = part.CFrame
+        task.wait(0.2)
+        ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("RequestBagStoreItem"):InvokeServer(sack, item)
+        task.wait(0.2)
+    end
+end
+
+-- ðŸŸ¢ Ù‚Ø§Ø¦Ù…Ø© Food Items
+local foodItems = {"Morsel", "Steak", "Carrot", "Berry", "All"}
+local selectedType = "All"
+createDropdown(bringTab, foodItems, #foodItems, function(selected)
+    selectedType = selected
+end)
+
+-- ðŸŸ¢ Toggles Ù„Ù„ØªØ­ÙƒÙ…
+local bringToggleActive = false
+local tpToggleActive = false
+
+-- Bring logic
+local function bringItems()
+    if not humanoidRootPart then return end
+    lastPos = humanoidRootPart.CFrame
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not bringToggleActive then break end
+        if isSackFull() then break end
+
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, food in pairs(foodItems) do
+                if food ~= "All" and string.find(itemName, food) then
+                    store(item)
+                    break
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                store(item)
+            end
+        end
+    end
+    humanoidRootPart.CFrame = lastPos
+end
+
+-- Tp logic
+local function tpToItems()
+    if not humanoidRootPart then return end
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not tpToggleActive then break end
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, food in pairs(foodItems) do
+                if food ~= "All" and string.find(itemName, food) then
+                    local part = item:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        humanoidRootPart.CFrame = part.CFrame
+                        task.wait(0.3)
+                    end
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                local part = item:FindFirstChildWhichIsA("BasePart")
+                if part then
+                    humanoidRootPart.CFrame = part.CFrame
+                    task.wait(0.3)
+                end
+            end
+        end
+    end
+end
+
+-- ðŸŸ¢ Toggles
+createToggle(bringTab, "Bring Foods", false, function(state)
+    bringToggleActive = state
+    if state then
+        task.spawn(function()
+            while bringToggleActive do
+                bringItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+createToggle(bringTab, "Tp To Foods", false, function(state)
+    tpToggleActive = state
+    if state then
+        task.spawn(function()
+            while tpToggleActive do
+                tpToItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+createSection(bringTab, "Farm Leather | 2.0")
+
+-- Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local character
+local humanoidRootPart
+local inventory = player:WaitForChild("Inventory")
+
+-- Detect character
+local function onCharacterAdded(char)
+    character = char
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end
+player.CharacterAdded:Connect(onCharacterAdded)
+if player.Character then
+    onCharacterAdded(player.Character)
+end
+
+-- Sack detection
+local sack = nil
+local function findSack()
+    for _, item in pairs(inventory:GetChildren()) do
+        if string.find(item.Name, "Sack") then
+            return item
+        end
+    end
+    return nil
+end
+sack = findSack()
+inventory.ChildAdded:Connect(function(child)
+    if string.find(child.Name, "Sack") then
+        sack = child
+    end
+end)
+inventory.ChildRemoved:Connect(function(child)
+    if sack and child == sack then
+        sack = findSack()
+    end
+end)
+
+-- Workspace folders
+local itemsFolder = workspace:FindFirstChild("Items")
+local characters = workspace:FindFirstChild("Characters")
+local lastPos = nil
+
+-- Sack check
+local function isSackFull()
+    if not sack then return true end
+    local current = sack:GetAttribute("NumberItems")
+    local capacity = sack:GetAttribute("Capacity")
+    return current ~= nil and capacity ~= nil and current >= capacity
+end
+
+-- Store item inside sack
+local function store(item)
+    if not sack then return end
+    local part = item:FindFirstChildWhichIsA("BasePart")
+    if part then
+        humanoidRootPart.CFrame = part.CFrame
+        task.wait(0.2)
+        ReplicatedStorage:WaitForChild("RemoteEvents"):WaitForChild("RequestBagStoreItem"):InvokeServer(sack, item)
+        task.wait(0.2)
+    end
+end
+
+-- ðŸŸ¢ Dropdown Ù„Ù„Ø§Ø®ØªÙŠØ§Ø± Ø¨ÙŠÙ† Ø£Ù†ÙˆØ§Ø¹ Ø§Ù„Ø¬Ù„ÙˆØ¯
+local leatherItems = {"Bear Pelt", "Wolf Pelt", "Bunny Foot", "Alpha Wolf Pelt", "All"}
+local selectedType = "All"
+createDropdown(bringTab, leatherItems, #leatherItems, function(selected)
+    selectedType = selected
+end)
+
+-- ðŸŸ¢ Toggles Ù„Ù„ØªØ­ÙƒÙ…
+local bringToggleActive = false
+local tpToggleActive = false
+
+-- Bring logic
+local function bringItems()
+    if not humanoidRootPart then return end
+    lastPos = humanoidRootPart.CFrame
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not bringToggleActive then break end
+        if isSackFull() then break end
+
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, leather in pairs(leatherItems) do
+                if leather ~= "All" and string.find(itemName, leather) then
+                    store(item)
+                    break
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                store(item)
+            end
+        end
+    end
+    humanoidRootPart.CFrame = lastPos
+end
+
+-- Tp logic
+local function tpToItems()
+    if not humanoidRootPart then return end
+    local all = {}
+    for _, obj in pairs(itemsFolder:GetChildren()) do table.insert(all, obj) end
+    for _, obj in pairs(characters:GetChildren()) do table.insert(all, obj) end
+
+    for _, item in pairs(all) do
+        if not tpToggleActive then break end
+        local itemName = item.Name
+        if selectedType == "All" then
+            for _, leather in pairs(leatherItems) do
+                if leather ~= "All" and string.find(itemName, leather) then
+                    local part = item:FindFirstChildWhichIsA("BasePart")
+                    if part then
+                        humanoidRootPart.CFrame = part.CFrame
+                        task.wait(0.3)
+                    end
+                end
+            end
+        else
+            if string.find(itemName, selectedType) then
+                local part = item:FindFirstChildWhichIsA("BasePart")
+                if part then
+                    humanoidRootPart.CFrame = part.CFrame
+                    task.wait(0.3)
+                end
+            end
+        end
+    end
+end
+
+-- ðŸŸ¢ Toggles
+createToggle(bringTab, "Bring Leather", false, function(state)
+    bringToggleActive = state
+    if state then
+        task.spawn(function()
+            while bringToggleActive do
+                bringItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+createToggle(bringTab, "Tp To Leather", false, function(state)
+    tpToggleActive = state
+    if state then
+        task.spawn(function()
+            while tpToggleActive do
+                tpToItems()
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+local autoTab = createTab("Auto")
+createSection(autoTab, "Farm Wood | 1.0")
+createToggle(autoTab, "Auto Farm Woods", false, function(state)
+    autoFarmEnabled = state
+    local player = game.Players.LocalPlayer
+    local axeName = "Strong Axe" -- Options: "Old Axe", "Good Axe", "Strong Axe", "Chainsaw"
+    local campfirePos = Vector3.new(0, 0, 0) -- Ø¶Ø¹ Ù‡Ù†Ø§ Ø¥Ø­Ø¯Ø§Ø«ÙŠØ§Øª Camp Fire
+
+    local axeHits = {
+        ["Old Axe"] = 13,
+        ["Good Axe"] = 5,
+        ["Strong Axe"] = 1,
+        ["Chainsaw"] = 2
+    }
+
+    local treeLevels = {
+        ["smalltree"] = 1,
+        ["mediumtree"] = 2,
+        ["bigtree"] = 3,
+        ["gianttree"] = 4
+    }
+
+    local axeLevels = {
+        ["Old Axe"] = 1,
+        ["Good Axe"] = 2,
+        ["Strong Axe"] = 3,
+        ["Chainsaw"] = 4
+    }
+
+    -- Ø§Ù„Ø­ØµÙˆÙ„ Ø¹Ù„Ù‰ Ø§Ù„ÙØ£Ø³
+    local function getAxe()
+        for _, tool in ipairs(player.Backpack:GetChildren()) do
+            if tool.Name == axeName then return tool end
+        end
+        for _, tool in ipairs(player.Character:GetChildren()) do
+            if tool.Name == axeName then return tool end
+        end
+        return nil
+    end
+
+    -- Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ù„Ù„Ø£Ø±Ø¶ Ø£Ù…Ø§Ù… Ø§Ù„Ø´Ø¬Ø±Ø© Ø£Ùˆ Ø§Ù„Ù†Ù‚Ø·Ø© Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©
+    local function teleportToGround(pos)
+        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        local humanoid = player.Character and player.Character:FindFirstChild("Humanoid")
+        if hrp and humanoid then
+            -- Ø§Ù„Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ø£Ø±Ø¶ ØªØ­Øª Ø§Ù„Ù†Ù‚Ø·Ø©
+            local ray = Ray.new(pos + Vector3.new(0, 50, 0), Vector3.new(0, -100, 0))
+            local hitPos = workspace:FindPartOnRayWithIgnoreList(ray, {player.Character})
+            local groundY = hitPos and hitPos.Position.Y or pos.Y
+            local direction = (pos - hrp.Position).Unit
+            local newPos = Vector3.new(pos.X, groundY, pos.Z) - direction * 3 -- ØªØ«Ø¨ÙŠØª Ø£Ù…Ø§Ù… Ø§Ù„Ø´Ø¬Ø±Ø©
+            hrp.CFrame = CFrame.new(newPos, Vector3.new(pos.X, groundY, pos.Z))
+            humanoid.PlatformStand = false
+            humanoid.Sit = false
+        end
+    end
+
+    -- Ø¥ÙŠØ¬Ø§Ø¯ Ø£Ù‚Ø±Ø¨ Ø´Ø¬Ø±Ø© Ù…Ù†Ø§Ø³Ø¨Ø©
+    local function getNearestTree()
+        local closestTree, minDist = nil, math.huge
+        local playerPos = player.Character.HumanoidRootPart.Position
+        local maxTreeLevel = axeLevels[axeName] or 1
+
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj:IsA("Model") and obj.Name:lower():find("tree") then
+                local root = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+                if root then
+                    local treeName = obj.Name:lower()
+                    local level = treeLevels[treeName] or 1
+                    if level <= maxTreeLevel then
+                        local dist = (playerPos - root.Position).Magnitude
+                        if dist < minDist then
+                            minDist = dist
+                            closestTree = root
+                        end
+                    end
+                end
+            end
+        end
+        return closestTree
+    end
+
+    -- Ù‚Ø·Ø¹ Ø§Ù„Ø´Ø¬Ø±Ø©
+    local function chopTree(treeRoot)
+        local axe = getAxe()
+        if not axe then warn("Axe not found!") return false end
+        if axe.Parent ~= player.Character then axe.Parent = player.Character end
+
+        -- Ø«Ø¨Ø§Øª Ø§Ù„Ù„Ø§Ø¹Ø¨ Ø£Ù…Ø§Ù… Ø§Ù„Ø´Ø¬Ø±Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø£Ø±Ø¶
+        teleportToGround(treeRoot.Position)
+
+        local hits = axeHits[axeName] or 5
+        for i = 1, hits do
+            if not autoFarmEnabled then return false end
+            firetouchinterest(axe.Handle, treeRoot, 0)
+            task.wait(0.2)
+            firetouchinterest(axe.Handle, treeRoot, 1)
+            task.wait(0.1)
+        end
+        return true
+    end
+
+    -- Ø¬Ù…Ø¹ Ø§Ù„Ø£Ø®Ø´Ø§Ø¨
+    local function collectLogs(treeModel)
+        for _, obj in ipairs(treeModel:GetDescendants()) do
+            if obj:IsA("ProximityPrompt") then
+                obj:InputHoldBegin()
+                task.wait(0.1)
+                obj:InputHoldEnd()
+            end
+        end
+    end
+
+    -- ØªØ³Ù„ÙŠÙ… Ø§Ù„Ø£Ø®Ø´Ø§Ø¨ Ù„Ù„Ù†Ø§Ø±
+    local function deliverLogs()
+        teleportToGround(campfirePos)
+        task.wait(1)
+    end
+
+    -- ØªØ´ØºÙŠÙ„ Ø§Ù„Ø­Ù„Ù‚Ø© Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ© Ù„Ù„ØªÙˆØºÙ„
+    if autoFarmEnabled then
+        task.spawn(function()
+            while autoFarmEnabled do
+                local tree = getNearestTree()
+                if tree then
+                    local treeModel = tree.Parent
+                    teleportToGround(tree.Position)
+                    task.wait(0.5)
+                    local done = chopTree(tree)
+                    if done then
+                        collectLogs(treeModel)
+                        deliverLogs()
+                    end
+                else
+                    task.wait(1)
+                end
+            end
+        end)
+    end
+end)
+
+createSection(autoTab, "Auto Farm Woods | 2.0")
+-- ==================== AUTO FARM ====================
+
+-- Variables
+local Player = game.Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local RemoteEvents = nil
+local ProcessedTrees = {}
+local CurrentTargets = {}
+local AutoFarmEnabled = false
+local AutoFarmConnection = nil
+local TreesChopped = 0
+
+local MAX_FARM_RANGE = 1000 -- Ø£Ù‚ØµÙ‰ Ù…Ø¯Ù‰ Ù„Ø¬Ù„Ø¨ Ø§Ù„Ø£Ø´Ø¬Ø§Ø±
+local MULTI_ATTACK = 3      -- Ø¹Ø¯Ø¯ Ù‡Ø¬Ù…Ø§Øª Ù…ØªØªØ§Ø¨Ø¹Ø© Ù„ÙƒÙ„ Ø´Ø¬Ø±Ø©
+local FARM_ATTACK_DELAY = 0.5
+local ValidTrees = {}       -- Ø¶Ø¹ Ù‡Ù†Ø§ Ø£Ø³Ù…Ø§Ø¡ Ø§Ù„Ø£Ø´Ø¬Ø§Ø± Ø§Ù„Ø®Ø§ØµØ© Ø¥Ø°Ø§ ÙƒØ§Ù†Øª Ù…Ø­Ø¯Ø¯Ø©
+
+-- ==================== UI ====================
+local farmInfoLabel = createTextLabel(farmTab, "Trees: 0 | Chopped: 0")
+
+-- ==================== Helper Functions ====================
+
+-- Check if player has Axe for farming
+local function hasAxeForFarm()
+    local Inventory = Player:FindFirstChild("Inventory")
+    if Inventory then
+        for _, item in pairs(Inventory:GetChildren()) do
+            if item:IsA("Model") and (item.Name:find("Axe") or item.Name:find("axe")) then
+                return true, item
+            end
+        end
+    end
+
+    if Player.Character then
+        for _, item in pairs(Player.Character:GetChildren()) do
+            if item:IsA("Tool") and (item.Name:find("Axe") or item.Name:find("axe")) then
+                return true, item
+            end
+        end
+    end
+
+    return false, nil
+end
+
+-- Find all trees in range
+local function findAllTreesInRange()
+    local trees = {}
+    local Character = Player.Character
+    if not Character or not Character:FindFirstChild("HumanoidRootPart") then
+        return trees
+    end
+    local RootPart = Character.HumanoidRootPart
+
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("Model") and obj.Parent and not ProcessedTrees[obj] then
+            local name = obj.Name
+            if name:lower():find("tree") or ValidTrees[name] then
+                local trunk =
+                    obj:FindFirstChild("Trunk") or obj:FindFirstChild("Wood") or obj:FindFirstChild("Log") or
+                    obj:FindFirstChild("TreePart")
+
+                if not trunk then
+                    for _, part in pairs(obj:GetChildren()) do
+                        if part:IsA("BasePart") then
+                            trunk = part
+                            break
+                        end
+                    end
+                end
+
+                if trunk and trunk:IsA("BasePart") then
+                    local distance = (RootPart.Position - trunk.Position).Magnitude
+                    if distance <= MAX_FARM_RANGE then
+                        table.insert(
+                            trees,
+                            { model = obj, trunk = trunk, name = name, distance = distance }
+                        )
+                    end
+                end
+            end
+        end
+    end
+
+    return trees
+end
+
+-- Attack single tree async
+local function attackTreeAsync(tree, axeTool, rootPart)
+    task.spawn(function()
+        for i = 1, MULTI_ATTACK do
+            if not tree.model.Parent then break end
+            pcall(function()
+                RemoteEvents:WaitForChild("ToolDamageObject"):InvokeServer(
+                    tree.model,
+                    axeTool,
+                    "1130340392",
+                    rootPart.CFrame
+                )
+            end)
+            task.wait(0.05)
+        end
+        task.wait(0.5)
+        if not tree.model.Parent then
+            TreesChopped = TreesChopped + 1
+            ProcessedTrees[tree.model] = true
+        end
+    end)
+end
+
+-- Attack all trees simultaneously
+local function attackAllTreesSimultaneously(trees, axeTool, rootPart)
+    if #trees > 0 then
+        local centerPos = Vector3.new(0, 0, 0)
+        for _, tree in ipairs(trees) do
+            centerPos = centerPos + tree.trunk.Position
+        end
+        centerPos = centerPos / #trees
+        local lookDir = (centerPos - rootPart.Position).Unit
+        rootPart.CFrame = CFrame.lookAt(rootPart.Position, rootPart.Position + lookDir * Vector3.new(1, 0, 1))
+    end
+
+    for _, tree in ipairs(trees) do
+        attackTreeAsync(tree, axeTool, rootPart)
+    end
+end
+
+-- ==================== Auto Farm Toggle ====================
+createToggle(farmTab, "Auto Farm Wood", false, function(enabled)
+    AutoFarmEnabled = enabled
+
+    if enabled then
+        -- Initialize RemoteEvents
+        if not RemoteEvents then
+            pcall(function()
+                RemoteEvents = game:GetService("ReplicatedStorage"):WaitForChild("RemoteEvents", 5)
+            end)
+        end
+
+        if not RemoteEvents then
+            AutoFarmEnabled = false
+            return
+        end
+
+        local hasAxeItem, axeTool = hasAxeForFarm()
+        if not hasAxeItem then
+            AutoFarmEnabled = false
+            return
+        end
+
+        ProcessedTrees = {} -- Reset processed trees
+        TreesChopped = 0
+
+        AutoFarmConnection = RunService.Heartbeat:Connect(function()
+            if not AutoFarmEnabled then return end
+            local Character = Player.Character
+            if not Character then return end
+            local RootPart = Character:FindFirstChild("HumanoidRootPart")
+            if not RootPart then return end
+
+            local hasAxeItem, axeTool = hasAxeForFarm()
+            if not hasAxeItem then return end
+
+            local trees = findAllTreesInRange()
+            CurrentTargets = trees
+            if #trees == 0 then
+                ProcessedTrees = {}
+                return
+            end
+
+            attackAllTreesSimultaneously(trees, axeTool, RootPart)
+        end)
+    else
+        if AutoFarmConnection then
+            AutoFarmConnection:Disconnect()
+            AutoFarmConnection = nil
+        end
+        CurrentTargets = {}
+    end
+end)
+
+-- ==================== Update Farm Info ====================
+task.spawn(function()
+    while true do
+        task.wait(1)
+        if farmInfoLabel then
+            local treeCount = #CurrentTargets
+            farmInfoLabel.Text = string.format("ðŸŒ³ Trees: %d | âœ… Chopped: %d", treeCount, TreesChopped)
+        end
+    end
+end)
+
+--// Services
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+--// GUI
+local ScreenGui = Instance.new("ScreenGui", LocalPlayer.PlayerGui)
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0, 250, 0, 200)
+Frame.Position = UDim2.new(0.05, 0, 0.3, 0)
+Frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+Frame.Active = true
+Frame.Draggable = true
+Instance.new("UICorner", Frame)
+
+-- Dropdown button
+local DropDownBtn = Instance.new("TextButton", Frame)
+DropDownBtn.Size = UDim2.new(0.9,0,0,30)
+DropDownBtn.Position = UDim2.new(0.05,0,0.05,0)
+DropDownBtn.Text = "Select Player â–¼"
+DropDownBtn.BackgroundColor3 = Color3.fromRGB(50,50,50)
+DropDownBtn.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", DropDownBtn)
+
+-- Scrolling list for players
+local PlayerList = Instance.new("ScrollingFrame", Frame)
+PlayerList.Size = UDim2.new(0.9,0,0,80)
+PlayerList.Position = UDim2.new(0.05,0,0.2,0)
+PlayerList.BackgroundColor3 = Color3.fromRGB(40,40,40)
+PlayerList.Visible = false
+PlayerList.CanvasSize = UDim2.new(0,0,0,0)
+Instance.new("UICorner", PlayerList)
+
+-- UI list layout
+local ListLayout = Instance.new("UIListLayout", PlayerList)
+ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- ESP Toggle
+local ESPButton = Instance.new("TextButton", Frame)
+ESPButton.Size = UDim2.new(0.9,0,0,30)
+ESPButton.Position = UDim2.new(0.05,0,0.55,0)
+ESPButton.Text = "ESP Player: OFF"
+ESPButton.BackgroundColor3 = Color3.fromRGB(100,0,0)
+ESPButton.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", ESPButton)
+
+-- TP Button
+local TPButton = Instance.new("TextButton", Frame)
+TPButton.Size = UDim2.new(0.9,0,0,30)
+TPButton.Position = UDim2.new(0.05,0,0.75,0)
+TPButton.Text = "TP To Player"
+TPButton.BackgroundColor3 = Color3.fromRGB(0,0,100)
+TPButton.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", TPButton)
+
+--// Variables
+local ESPEnabled = false
+local highlights = {}
+local SelectedPlayer = nil
+
+-- Function: Create ESP
+local function createESP(target)
+    if not target.Character then return end
+    if highlights[target] then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.FillTransparency = 1
+    highlight.OutlineColor = Color3.fromRGB(0,255,0)
+    highlight.Parent = target.Character
+    highlights[target] = highlight
+
+    -- Billboard for name + distance
+    local billboard = Instance.new("BillboardGui", target.Character:WaitForChild("HumanoidRootPart"))
+    billboard.Size = UDim2.new(0,200,0,50)
+    billboard.AlwaysOnTop = true
+
+    local text = Instance.new("TextLabel", billboard)
+    text.Size = UDim2.new(1,0,1,0)
+    text.BackgroundTransparency = 1
+    text.TextColor3 = Color3.new(1,1,1)
+    text.Font = Enum.Font.SourceSansBold
+    text.TextScaled = true
+
+    RunService.RenderStepped:Connect(function()
+        if target.Character and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local dist = (target.Character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            text.Text = target.Name .. " | " .. tostring(math.floor(dist)).." studs"
+        end
+    end)
+end
+
+-- Function: Remove ESP
+local function removeESP()
+    for player, highlight in pairs(highlights) do
+        if highlight then highlight:Destroy() end
+        if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            for _, gui in pairs(player.Character.HumanoidRootPart:GetChildren()) do
+                if gui:IsA("BillboardGui") then gui:Destroy() end
+            end
+        end
+    end
+    highlights = {}
+end
+
+-- Toggle ESP Button
+ESPButton.MouseButton1Click:Connect(function()
+    ESPEnabled = not ESPEnabled
+    if ESPEnabled and SelectedPlayer then
+        ESPButton.Text = "ESP Player: ON"
+        ESPButton.BackgroundColor3 = Color3.fromRGB(0,100,0)
+        createESP(SelectedPlayer)
+    else
+        ESPButton.Text = "ESP Player: OFF"
+        ESPButton.BackgroundColor3 = Color3.fromRGB(100,0,0)
+        removeESP()
+    end
+end)
+
+-- TP Button
+TPButton.MouseButton1Click:Connect(function()
+    if SelectedPlayer and SelectedPlayer.Character and SelectedPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = SelectedPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0)
+        end
+    end
+end)
+
+-- Dropdown toggle
+DropDownBtn.MouseButton1Click:Connect(function()
+    PlayerList.Visible = not PlayerList.Visible
+end)
+
+-- Function: Refresh player list
+local function refreshPlayers()
+    for _, child in pairs(PlayerList:GetChildren()) do
+        if child:IsA("TextButton") then child:Destroy() end
+    end
+
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= LocalPlayer then
+            local btn = Instance.new("TextButton", PlayerList)
+            btn.Size = UDim2.new(1,0,0,25)
+            btn.Text = plr.Name
+            btn.BackgroundColor3 = Color3.fromRGB(70,70,70)
+            btn.TextColor3 = Color3.new(1,1,1)
+
+            btn.MouseButton1Click:Connect(function()
+                SelectedPlayer = plr
+                DropDownBtn.Text = "Selected: " .. plr.Name
+                PlayerList.Visible = false
+                removeESP()
+                if ESPEnabled then
+                    createESP(SelectedPlayer)
+                end
+            end)
+        end
+    end
+    PlayerList.CanvasSize = UDim2.new(0,0,0,#Players:GetPlayers()*25)
+end
+
+-- Auto update player list
+Players.PlayerAdded:Connect(refreshPlayers)
+Players.PlayerRemoving:Connect(refreshPlayers)
+refreshPlayers()
+
+local espTab = createTab("ESP")
+
+-- جدول تخزين الـ ESPs
+local ESP_OBJECTS = {}
+
+-- دالة عمل ESP
+local function makeESP(obj, typ)
+    local adornee = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+    if not adornee then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.FillTransparency = 1
+    highlight.OutlineColor = Color3.new(1, 0, 0)
+    highlight.Adornee = obj
+    highlight.Parent = obj
+
+    local billboard = Instance.new("BillboardGui", obj)
+    billboard.Adornee = adornee
+    billboard.Size = UDim2.new(0, 100, 0, 50)
+    billboard.AlwaysOnTop = true
+
+    local textLabel = Instance.new("TextLabel", billboard)
+    textLabel.Size = UDim2.new(1, 0, 0, 20)
+    textLabel.BackgroundTransparency = 1
+    textLabel.Font = Enum.Font.SourceSansBold
+    textLabel.TextSize = 14
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.Text = typ
+
+    local healthLabel
+    if typ ~= "Kids" then
+        healthLabel = Instance.new("TextLabel", billboard)
+        healthLabel.Size = UDim2.new(1, 0, 0, 20)
+        healthLabel.Position = UDim2.new(0, 0, 0, 20)
+        healthLabel.BackgroundTransparency = 1
+        healthLabel.Font = Enum.Font.SourceSansBold
+        healthLabel.TextSize = 14
+        healthLabel.TextColor3 = Color3.fromRGB(0, 255, 0)
+        healthLabel.Text = "HP"
+    end
+
+    ESP_OBJECTS[obj] = {highlight = highlight, label = textLabel, health = healthLabel, obj = obj}
+
+    task.spawn(function()
+        while ESP_OBJECTS[obj] do
+            for i = 0, 255 do
+                if highlight then highlight.OutlineColor = Color3.fromHSV(i / 255, 1, 1) end
+                if textLabel then textLabel.TextColor3 = Color3.fromHSV(i / 255, 1, 1) end
+                if healthLabel then
+                    healthLabel.TextColor3 = Color3.fromHSV(i / 255, 1, 1)
+                    local hum = obj:FindFirstChildOfClass("Humanoid")
+                    if hum then
+                        healthLabel.Text = "HP: " .. math.floor(hum.Health) .. "/" .. math.floor(hum.MaxHealth)
+                    end
+                end
+                task.wait(0.03)
+            end
+        end
+    end)
+end
+
+-- دالة مسح الـ ESP
+local function clearESP()
+    for obj, parts in pairs(ESP_OBJECTS) do
+        if parts.highlight then parts.highlight:Destroy() end
+        if parts.label and parts.label.Parent then parts.label.Parent:Destroy() end
+    end
+    ESP_OBJECTS = {}
+end
+
+-- Toggles جديدة
+createToggle(espTab, "ESP Bunny", false, function(state)
+    clearESP()
+    if state then
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj.Name:lower():match("bunny") then makeESP(obj, "Bunny") end
+        end
+    end
+end)
+
+createToggle(espTab, "ESP Wolf", false, function(state)
+    clearESP()
+    if state then
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj.Name:lower() == "wolf" then makeESP(obj, "Wolf") end
+        end
+    end
+end)
+
+createToggle(espTab, "ESP Alpha Wolf", false, function(state)
+    clearESP()
+    if state then
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj.Name:lower() == "alpha wolf" then makeESP(obj, "Alpha Wolf") end
+        end
+    end
+end)
+
+createToggle(espTab, "ESP Bear", false, function(state)
+    clearESP()
+    if state then
+        for _, obj in pairs(workspace:GetDescendants()) do
+            if obj.Name:lower() == "bear" then makeESP(obj, "Bear") end
+        end
+    end
+end)
+
+-- Kids (مع تعديل الاسم ليظهر "اسم Kid")
+createToggle(espTab, "ESP Kids", false, function(state)
+    clearESP()
+    if state then
+        for _, obj in pairs(workspace:GetDescendants()) do
+            local name = obj.Name:lower()
+            if name:match("kid") or name:match("child") then
+                local displayName = obj.Name .. " Kid" -- إضافة كلمة Kid
+                makeESP(obj, displayName)
+            end
+        end
+    end
+end)
